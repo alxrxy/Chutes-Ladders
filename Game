@@ -1,0 +1,137 @@
+package ilstu.edu;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Game {
+
+	private static class Square {
+
+		private Square prev;
+		private Square next;
+		private int squareNumber;
+		private int jumpValue;
+
+		public Square(int squareNumber, int jumpValue, Square prev) {
+
+			this.squareNumber = squareNumber;
+			this.jumpValue = jumpValue;
+			this.prev = prev;
+		}
+	}
+
+	private Square start;
+	private ArrayList<Square> playerPositions;
+	private int curr;
+
+	public Game(int numberOfPlayers) {
+
+		playerPositions = new ArrayList<>(numberOfPlayers);
+
+		for (int i = 0; i < numberOfPlayers; i++) {
+			Square start = new Square(1, 0, null);
+			playerPositions.add(start);
+		}
+
+		generateBoard();
+	}
+
+	private void generateBoard() {
+
+		start = new Square(1, 0, null);
+		Square currentSquare = start;
+		Random random = new Random();
+		int goldenSquare = random.nextInt(98) + 1;
+		int jumpValue;
+
+		for (int i = 2; i <= 100; i++) {
+			if (i == goldenSquare) {
+				jumpValue = 100 - i;
+			} else {
+				jumpValue = random.nextInt(4) - 1;
+				if (jumpValue != 0 && i + jumpValue > 100) {
+					jumpValue -= (i + jumpValue - 100);
+				}
+			}
+
+			currentSquare.next = new Square(i, jumpValue, currentSquare);
+			currentSquare = currentSquare.next;
+		}
+	}
+
+	public void play() {
+
+		Scanner scanner = new Scanner(System.in);
+		while (true) {
+
+			System.out.println("Player " + (curr + 1) + ", press any key to roll the die.");
+			scanner.nextLine();
+			int roll = rollDie();
+			System.out.println("Player " + (curr + 1) + " rolled a " + roll);
+
+			if (move(curr, roll)) {
+				System.out.println("Player " + (curr + 1) + " wins!");
+				break;
+			}
+
+			curr = (curr + 1) % playerPositions.size();
+		}
+		scanner.close();
+	}
+
+	private int rollDie() {
+		Random random = new Random();
+		return random.nextInt(6) + 1;
+	}
+
+	private boolean move(int playerNumber, int squaresToMove) {
+
+		Square currentPosition = playerPositions.get(playerNumber);
+
+		for (int i = 0; i < squaresToMove; i++) {
+
+			if (currentPosition != null) {
+				int newPosition = currentPosition.squareNumber + 1;
+				if (newPosition <= 100) {
+					currentPosition = getSquare(newPosition);
+				}
+			}
+		}
+
+		playerPositions.set(playerNumber, currentPosition);
+
+		if (currentPosition != null) {
+
+			System.out.println("Player " + (playerNumber + 1) + " moved from square "
+					+ currentPosition.prev.squareNumber + " to square " + currentPosition.squareNumber
+					+ ". Jump taken: " + ((currentPosition.jumpValue != 0) ? "Yes" : "No"));
+
+			while (currentPosition.jumpValue != 0) {
+
+				int newPosition = currentPosition.squareNumber + currentPosition.jumpValue;
+				if (newPosition <= 100) {
+					currentPosition = getSquare(newPosition);
+					playerPositions.set(playerNumber, currentPosition);
+					System.out.println(
+							"Player " + (playerNumber + 1) + " jumped to square " + currentPosition.squareNumber);
+				}
+			}
+
+			return currentPosition.squareNumber == 100;
+		} else {
+			System.out.println("Player " + (playerNumber + 1) + " moved out of bounds.");
+			return false;
+		}
+	}
+
+	private Square getSquare(int number) {
+
+		Square currentSquare = start;
+
+		while (currentSquare != null && currentSquare.squareNumber != number) {
+			currentSquare = currentSquare.next;
+		}
+		return currentSquare;
+	}
+}
