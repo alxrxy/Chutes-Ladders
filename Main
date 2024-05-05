@@ -1,0 +1,19 @@
+package ilstu.edu;
+
+import java.util.Scanner;
+
+public class Main {
+
+	public static void main(String[] args) {
+
+		System.out.println("Welcome to Chutes and Ladders!");
+		Scanner scanner = new Scanner(System.in);
+		System.out.print("Enter the number of players: ");
+
+		int numberOfPlayers = scanner.nextInt();
+		Game game = new Game(numberOfPlayers);
+		game.play();
+
+		scanner.close();
+	}
+}
